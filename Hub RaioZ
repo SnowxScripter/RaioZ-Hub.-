@@ -1,0 +1,97 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local workspace = game:GetService("Workspace")
+
+local raridades = {
+    "Todas", "Comum", "Raro", "Épico",
+    "Lendário", "Mítico", "Secreto"
+}
+
+local selecionada = "Todas"
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "RaioZHub"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(280, 320)
+frame.Position = UDim2.new(0, 20, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(250, 250, 250)
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+
+local function criarBotao(nome, texto, y)
+    local b = Instance.new("TextButton")
+    b.Name = nome
+    b.Text = texto
+    b.Size = UDim2.new(1, -20, 0, 35)
+    b.Position = UDim2.fromOffset(10, y)
+    b.BackgroundColor3 = Color3.fromRGB(255, 220, 70)
+    b.TextColor3 = Color3.fromRGB(35, 35, 35)
+    b.Parent = frame
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    return b
+end
+
+local titulo = Instance.new("TextLabel")
+titulo.Size = UDim2.new(1, 0, 0, 40)
+titulo.BackgroundTransparency = 1
+titulo.Text = "RaioZ Hub"
+titulo.TextSize = 24
+titulo.TextColor3 = Color3.fromRGB(30, 30, 30)
+titulo.Parent = frame
+
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -20, 0, 50)
+status.Position = UDim2.fromOffset(10, 265)
+status.BackgroundTransparency = 1
+status.TextWrapped = true
+status.Text = "Pronto para verificar."
+status.Parent = frame
+
+local indice = 1
+local lista = criarBotao("Filtro", "Raridade: Todas", 50)
+local verificar = criarBotao("Status", "Atualizar status dos ovos", 95)
+local listar = criarBotao("Ovos", "Listar ovos encontrados", 140)
+local fechar = criarBotao("Fechar", "Fechar interface", 185)
+
+local function encontrarOvos()
+    local encontrados = {}
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if string.find(string.lower(obj.Name), "ovo", 1, true) then
+            local raridade = obj:GetAttribute("Raridade") or "Desconhecida"
+
+            if selecionada == "Todas" or raridade == selecionada then
+                table.insert(encontrados, obj.Name .. " (" .. raridade .. ")")
+            end
+        end
+    end
+
+    return encontrados
+end
+
+lista.MouseButton1Click:Connect(function()
+    indice = indice % #raridades + 1
+    selecionada = raridades[indice]
+    lista.Text = "Raridade: " .. selecionada
+    status.Text = "Filtro atualizado."
+end)
+
+verificar.MouseButton1Click:Connect(function()
+    local ovos = encontrarOvos()
+    status.Text = "Objetos encontrados: " .. #ovos
+end)
+
+listar.MouseButton1Click:Connect(function()
+    local ovos = encontrarOvos()
+    status.Text = #ovos == 0 and
+        "Nenhum objeto com 'ovo' no nome." or
+        table.concat(ovos, "\n")
+end)
+
+fechar.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
